@@ -4,6 +4,7 @@ import asyncio
 import websockets as ws
 import json
 import time
+from datetime import datetime
 
 def read_json(path):
 
@@ -16,6 +17,17 @@ def read_json(path):
 def stop():
     task.cancel()
     print('shit')
+
+async def response(connection):
+    response = await asyncio.wait_for(connection.recv(), timeout=2)
+    print("res: {}".format(response))
+    with open('output.txt', 'a') as f:
+        f.write(response + '\n')
+
+async def request(connection, data):
+    await connection.send(data)
+    print("req: {}".format(data))
+    task_respond = asyncio.create_task(asyncio.wait_for(response(connection), timeout=2))
 
 
 async def heart_beat(path):
@@ -32,22 +44,30 @@ async def heart_beat(path):
 
     async with ws.connect("wss://currency-assignment.ematiq.com") as connection:
 
-        try:
-            await asyncio.wait_for(connection.send(data), timeout=2)
-            print("> {}".format(data))
-            response = await asyncio.wait_for(connection.recv(), timeout=2)
-            print("< {}".format(response))
-        except asyncio.TimeoutError:
-            print('timeout!')
-            raise ValueError
+
+        # task_respond = asyncio.create_task(asyncio.wait_for(response(connection), timeout=2))
+
+        while True:
+            await asyncio.sleep(1)
+            task_request = asyncio.create_task(request(connection, data))
+            task_request
+            print(datetime.now().second)
+
+
+
+
+        # await task_request
+        # try:
+        #     await task_respond
+        #     print("> {}".format(data))
+        #     response = await asyncio.wait_for(connection.recv(), timeout=2)
+        #     print("< {}".format(response))
+        # except asyncio.TimeoutError:
+        #     print('timeout!')
+        #     raise ValueError
             # a = asyncio.get_running_loop()
             # print(a)
             # a.cancel()
-
-
-
-
-
 
 def start_app():
 
@@ -62,15 +82,9 @@ def start_app():
         print('restarting application...')
         start_app()
 
+# start_app()
 
-
-#
-
-
-
-start_app()
-
-
+asyncio.run(heart_beat('heartbeat.json'))
 
 
 
