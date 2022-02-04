@@ -26,8 +26,11 @@ class RateMemory(object):
         else:
             print(date + ' is already in memory')
 
-    def get_rates(self,  date, currency):
-
+    def get_rates(self, date, currency):
+        """
+               Function get_rates(date, currency) will return currency <> EUR rate to given date and currency.
+               If given date is not it the memory, than it is automatically downloaded from https://exchangerate.host/.
+               """
         try:
             rates = self.rates[date][1][currency]
         except KeyError:
