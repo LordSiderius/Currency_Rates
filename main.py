@@ -5,6 +5,7 @@ import websockets as ws
 import json
 import time
 from datetime import datetime
+from currency_rate_memory import RateMemory
 
 def read_json(path):
 
@@ -13,10 +14,13 @@ def read_json(path):
         content = json.load(f)
 
     return str(content).replace("'","\"")
+#
+# def stop():
+#     task.cancel()
+#     print('shit')
 
-def stop():
-    task.cancel()
-    print('shit')
+# def calculate(message):
+
 
 async def response(connection):
     response = await asyncio.wait_for(connection.recv(), timeout=2)
@@ -83,6 +87,7 @@ def start_app():
         start_app()
 
 # start_app()
+rate_mem = RateMemory()
 
 asyncio.run(heart_beat('heartbeat.json'))
 

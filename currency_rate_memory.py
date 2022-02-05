@@ -1,3 +1,5 @@
+# This script describes a class which keeps the currency rates in the memory
+
 import requests
 from datetime import datetime, timedelta
 import time
@@ -9,16 +11,19 @@ class RateMemory(object):
         self.rates = {}
         self.records_lifespan = 2  # in hours
 
-    def get_rates_by_date(self, date):
+    def download_rates_by_date(self, date):
 
         """
-        Function get_rates_by_date(date) will check whether the currency rates belonging to given date are already
+        Function download_rates_by_date(date) will check whether the currency rates belonging to given date are already
         in the memory. If not, given day records are added to memory.
         """
 
         if not(date in list(self.rates.keys())):
             url = 'https://api.exchangerate.host/' + date
+
             response = requests.get(url)
+
+
             data = response.json()
             create_date = datetime.now()
             self.rates.setdefault(date, [{'created': create_date}, data['rates']])
@@ -34,7 +39,7 @@ class RateMemory(object):
         try:
             rates = self.rates[date][1][currency]
         except KeyError:
-            self.get_rates_by_date(date)
+            self.download_rates_by_date(date)
             rates = self.get_rates(date, currency)
 
         return rates
@@ -57,17 +62,19 @@ class RateMemory(object):
 
 
 if __name__ == '__main__':
+    #debug session
     cur_rates = RateMemory()
     #cur_rates.records_lifespan = 1/3600
-    cur_rates.get_rates_by_date('2020-04-04')
+    cur_rates.download_rates_by_date('2020-04-04')
     time.sleep(2)
-    cur_rates.get_rates_by_date('2019-04-04')
+    cur_rates.download_rates_by_date('2019-04-04')
     cur_rates.clean_mem()
-    cur_rates.get_rates_by_date('2020-04-04')
+    cur_rates.download_rates_by_date('2020-04-04')
     time.sleep(0.5)
     cur_rates.clean_mem()
     time.sleep(0.7)
     cur_rates.clean_mem()
+
     print(cur_rates.get_rates('2020-04-04', 'USD'))
 
 
