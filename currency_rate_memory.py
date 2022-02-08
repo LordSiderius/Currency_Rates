@@ -33,7 +33,8 @@ class RateMemory(object):
                     print(date + ' was added to currency rates memory')
 
             except Exception as error:
-                print('Error: %s' % error)
+                raise Exception(error)
+                # print('Error10: %s' % error)
 
         else:
 
@@ -50,14 +51,14 @@ class RateMemory(object):
             try:
                 self.download_rates_by_date(date)
             except Exception as e:
-                print('Current rates cannot be downloaded. Error text: %s' % e)
+                raise Exception(e)
+                # print('Current rates cannot be downloaded. Error text: %s' % e)
 
-            try:
-                rates = self.rates[date][1][currency]
-            except Exception as e:
-                print('EEE %s' % e)
-                raise Exception('Given currency is not in the list. Error text: %s' % e)
-
+        try:
+            rates = self.rates[date][1][currency]
+        except Exception as e:
+            # print('Error: Given date %s is not in the memory.' % e)
+            raise Exception(e)
 
         return rates
 

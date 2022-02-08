@@ -20,14 +20,15 @@ def message_handler(message, rates_mem):
             out_message['payload']['currency'] = "EUR"
 
         except Exception as e:
-            print('Currency rate wasn\'t transfered. Error : %s' % e)
             out_message = None
+            error_handler(e)
+            raise Exception(e)
+            # print('Currency rate wasn\'t transfered. Error : %s' % e)
 
     else:
         out_message = None
 
 
-    rates_mem.clean_mem()
     return out_message
 
 def error_handler(error):
