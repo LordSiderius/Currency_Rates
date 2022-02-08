@@ -3,7 +3,7 @@ import websockets as ws
 import json
 from datetime import datetime
 from currency_rate_memory import RateMemory
-from transfer_cur import message_handler
+from message_handler import message_handler
 
 
 async def request(connection, rates_mem):
@@ -25,7 +25,7 @@ async def response(connection, rates_mem):
     print('new res: {}'.format(back_message))
 
     if back_message is not None:
-        connection.send(str(message))
+        # connection.send(str(message))
 
         print('send')
 

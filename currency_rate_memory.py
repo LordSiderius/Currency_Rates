@@ -19,28 +19,45 @@ class RateMemory(object):
         """
 
         if not(date in list(self.rates.keys())):
+
             url = 'https://api.exchangerate.host/' + date
 
-            response = requests.get(url)
+            try:
+                response = requests.get(url, timeout=1)
+                data = response.json()
+                if data['success'] is False:
+                    raise Exception('Receiving rates form server %s wasn\'t successful' % url)
+                else:
+                    create_date = datetime.now()
+                    self.rates.setdefault(date, [{'created': create_date}, data['rates']])
+                    print(date + ' was added to currency rates memory')
 
+            except Exception as error:
+                print('Error: %s' % error)
 
-            data = response.json()
-            create_date = datetime.now()
-            self.rates.setdefault(date, [{'created': create_date}, data['rates']])
-            print(date + ' was added to currency rates memory')
         else:
+
             print(date + ' is already in memory')
+
+
 
     def get_rates(self, date, currency):
         """
                Function get_rates(date, currency) will return currency <> EUR rate to given date and currency.
                If given date is not it the memory, than it is automatically downloaded from https://exchangerate.host/.
                """
-        try:
-            rates = self.rates[date][1][currency]
-        except KeyError:
-            self.download_rates_by_date(date)
-            rates = self.get_rates(date, currency)
+        if not(date in list(self.rates.keys())):
+            try:
+                self.download_rates_by_date(date)
+            except Exception as e:
+                print('Current rates cannot be downloaded. Error text: %s' % e)
+
+            try:
+                rates = self.rates[date][1][currency]
+            except Exception as e:
+                print('EEE %s' % e)
+                raise Exception('Given currency is not in the list. Error text: %s' % e)
+
 
         return rates
 
@@ -65,16 +82,17 @@ if __name__ == '__main__':
     #debug session
     cur_rates = RateMemory()
     #cur_rates.records_lifespan = 1/3600
-    cur_rates.download_rates_by_date('2020-04-04')
+    # cur_rates.download_rates_by_date('2020-04-04')
     time.sleep(2)
-    cur_rates.download_rates_by_date('2019-04-04')
+    # cur_rates.download_rates_by_date('2019-04-04')
     cur_rates.clean_mem()
-    cur_rates.download_rates_by_date('2020-04-04')
+    # cur_rates.download_rates_by_date('2020-04-04')
     time.sleep(0.5)
+    cur_rates.download_rates_by_date('1885-04-04')
     cur_rates.clean_mem()
     time.sleep(0.7)
     cur_rates.clean_mem()
 
-    print(cur_rates.get_rates('2020-04-04', 'USD'))
+    print(cur_rates.get_rates('2022-01-13', 'UAH'))
 
 
