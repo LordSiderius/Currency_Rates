@@ -26,7 +26,9 @@ class RateMemory(object):
                 response = requests.get(url, timeout=1)
                 data = response.json()
                 if data['success'] is False:
-                    raise Exception('Receiving rates form server %s wasn\'t successful' % url)
+                    print('Receiving rates for ' + date + ' from server ' + url + ' wasn\'t successful')
+                    raise Exception('Receiving rates for ' + date + ' from server ' + url + ' wasn\'t successful')
+
                 else:
                     create_date = datetime.now()
                     self.rates.setdefault(date, [{'created': create_date}, data['rates']])
@@ -58,7 +60,7 @@ class RateMemory(object):
             rates = self.rates[date][1][currency]
         except Exception as e:
             # print('Error: Given date %s is not in the memory.' % e)
-            raise Exception(e)
+            raise Exception('Given currency %s is not in the currency rates list' % e)
 
         return rates
 

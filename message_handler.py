@@ -1,6 +1,6 @@
 # This script contains function message_handler(message, rates_mem), which evaluate the message received from heartbeat
 # script.
-# returns a message with currency tranfered to EUR or an error message
+# returns a message with currency transferred to EUR or an error message
 
 import copy
 import json
@@ -19,11 +19,12 @@ def message_handler(message, rates_mem):
             out_message['payload']['stake'] = round(float(out_message['payload']['stake']) / rate, 5)
             out_message['payload']['currency'] = "EUR"
 
-        except Exception as e:
+
+        except Exception as error:
             out_message = None
-            error_handler(e)
-            raise Exception(e)
-            # print('Currency rate wasn\'t transfered. Error : %s' % e)
+            # error_handler(e)
+            raise Exception(error)
+            # print('Currency rate wasn\'t transferred. Error : %s' % e)
 
     else:
         out_message = None
@@ -41,15 +42,27 @@ def error_handler(error):
 
     return out_error
 
+
 if __name__ == '__main__':
+
     rates_mem = RateMemory()
 
-    with open('one_line.txt', 'r') as f:
-        message = json.load(f)
+    with open('input.txt', 'r') as f:
+        for i in range(25):
+            line = f.readline()
+            message = json.loads(line)
+            print(message)
 
-    print(message)
-    out_message = message_handler(message, rates_mem)
+            try:
 
-    print(out_message)
+                out_message = message_handler(message, rates_mem)
 
-    print(error_handler('Timeout Error'))
+            except Exception as error:
+
+                out_message = error_handler(error)
+
+            print(out_message)
+
+
+
+
