@@ -1,95 +1,70 @@
-# This is a currency rates script for Ematiq interview
-
 import asyncio
 import websockets as ws
 import json
-import time
-from datetime import datetime
 from currency_rate_memory import RateMemory
-
-def read_json(path):
-
-    with open(path, 'r') as f:
-        # perform file operations
-        content = json.load(f)
-
-    return str(content).replace("'","\"")
-#
-# def stop():
-#     task.cancel()
-#     print('shit')
-
-# def calculate(message):
+from message_handler import message_handler, error_handler
 
 
-async def response(connection):
-    response = await asyncio.wait_for(connection.recv(), timeout=2)
-    print("res: {}".format(response))
-    with open('output.txt', 'a') as f:
-        f.write(response + '\n')
+async def heartbeat(rates_mem):
 
-async def request(connection, data):
-    await connection.send(data)
-    print("req: {}".format(data))
-    task_respond = asyncio.create_task(asyncio.wait_for(response(connection), timeout=2))
-
-
-async def heart_beat(path):
-
-    data = read_json(path)
-
-    print('Starting Application')
-
-    # t0 = time.time()
-    # while True:
-    #     a = time.time()
-    #     print(a-t0)
-    #     t0 = a
-
-    async with ws.connect("wss://currency-assignment.ematiq.com") as connection:
-
-
-        # task_respond = asyncio.create_task(asyncio.wait_for(response(connection), timeout=2))
-
+    print('starting connection...')
+    url = "ws://localhost:8765" # DEBUG
+    # url = "wss://currency-assignment.ematiq.com"
+    async with ws.connect(url) as connection:
         while True:
+            data = json.dumps({'type': 'heartbeat'})
+            await connection.send(data)
+            print("req: {}".format(data))
+
+            try:
+                message = await asyncio.wait_for(connection.recv(), timeout=2)
+                message = json.loads(message)
+                print('original res: {}'.format(message))
+
+                # DEBUG recording
+                # if message['type'] == "message":
+
+                    # with open('output.txt', 'a') as f:
+                    #     f.write(json.dumps(message) + '\n')
+                # DEBUG recording end
+
+                back_message = message_handler(message, rates_mem)
+
+                if back_message is not None:
+                    await connection.send(json.dumps(back_message))
+                    print('back message ' + str(back_message))
+
+            except asyncio.exceptions.TimeoutError:
+                print('original res: {}'.format(message))
+                error_message = error_handler('TimeoutError - Sever is not responding')
+
+                await connection.send(json.dumps(error_message))
+                print('Error message: ' + str(error_message))
+                raise Exception('TimeoutError - Sever is not responding')
+
+            except Exception as error_msg:
+                print('original res: {}'.format(message))
+                error_message = error_handler(error_msg)
+
+                await connection.send(json.dumps(error_message))
+                print('Error message: ' + str(error_message))
+
+
+            rates_mem.clean_mem()
+
             await asyncio.sleep(1)
-            task_request = asyncio.create_task(request(connection, data))
-            task_request
-            print(datetime.now().second)
 
 
-
-
-        # await task_request
-        # try:
-        #     await task_respond
-        #     print("> {}".format(data))
-        #     response = await asyncio.wait_for(connection.recv(), timeout=2)
-        #     print("< {}".format(response))
-        # except asyncio.TimeoutError:
-        #     print('timeout!')
-        #     raise ValueError
-            # a = asyncio.get_running_loop()
-            # print(a)
-            # a.cancel()
-
-def start_app():
-
-    loop = asyncio.get_event_loop()
-    # loop.create_task(heart_beat('heartbeat.json'))
-    task = loop.create_task(heart_beat('heartbeat.json'))
+def run(loop):
+    cur_rates = RateMemory()
 
     try:
-        loop.run_forever()
+        loop.run_until_complete(heartbeat(cur_rates))
 
-    except:
-        print('restarting application...')
-        start_app()
+    except Exception as error:
+        print(error)
+        run(loop)
 
-# start_app()
-rate_mem = RateMemory()
-
-asyncio.run(heart_beat('heartbeat.json'))
-
-
-
+loop = asyncio.get_event_loop()
+loop.set_exception_handler(None)
+run(loop)

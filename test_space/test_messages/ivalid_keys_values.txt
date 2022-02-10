@@ -1,0 +1,6 @@
+{"type": "message", "id": 10859, "payload": {"marketId": 7082, "selectionId": 9597, "odds": 7.31, "stake": , "currency": "ZWL", "date": "2022-01-13T04:34:05.108Z"}}
+{"type": "message", "id": 10860, "payload": {"marketId": 5540, "selectionId": 9147, "odds": 3.12, "stake": 1824.53309, "currency": "BLA", "date": "2022-01"}}
+{"type": "message", "id": 10861, "paylod": {"marketId": 2767, "selectionId": 6138, "odds": 5.43, "stake": 1400.88129, "currency": "GBP", "date": "1885-01-14T02:02:24.902Z"}}
+{"type": "message", "id": 10862, "payload": {"marketId": 5540, "selectionId": 9147, "odds": 6.6, "stake": 4736.41619, "currency": "USD", "date": "2022-01-13T05:24:26.284Z"}}
+{"type": "message", "id": 10863, "payload": {"maketId": 5540, "selectionId": 9147, "odds": 4.19, "stake": 3755.79256, "currency": "PLN", "date": "2022-01-13T12:37:30.446Z"}}
+{"type": "message", "id": 10864, "payload": {"marketId": 424, "selectionId": 7745, "odds": 6.81, "stake": -9215.62812, "currncy": "UAH", "date": "1885-01-15T02:49:48.766Z"}}

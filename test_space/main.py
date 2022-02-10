@@ -8,18 +8,21 @@ from message_handler import message_handler, error_handler
 async def heartbeat(rates_mem):
 
     print('starting connection...')
-    urlDEBUG = "ws://localhost:8765"
+    url = 'ws://localhost:8765' # DEBUG
     # url = "wss://currency-assignment.ematiq.com"
-    async with ws.connect(urlDEBUG) as connection:
+
+
+    async with ws.connect(url) as connection:
         while True:
+            print('-----------------------------------------------------------------------------------------')
             data = json.dumps({'type': 'heartbeat'})
-            await connection.send(data)
-            print("req: {}".format(data))
+            await asyncio.wait_for(connection.send(data), timeout=0.2)
+            print("out message: {}".format(data))
 
             try:
                 message = await asyncio.wait_for(connection.recv(), timeout=2)
                 message = json.loads(message)
-                print('original res: {}'.format(message))
+                print('in message : {}'.format(message))
 
                 # DEBUG recording
                 # if message['type'] == "message":
@@ -35,15 +38,15 @@ async def heartbeat(rates_mem):
                     print('back message ' + str(back_message))
 
             except asyncio.exceptions.TimeoutError:
-                print('original res: {}'.format(message))
-                error_message = error_handler('Error: TimeoutError - Sever is not responding')
+                # print('original res: {}'.format(message))
+                error_message = error_handler('TimeoutError - Sever is not responding')
 
                 await connection.send(json.dumps(error_message))
                 print('Error message: ' + str(error_message))
-                raise Exception('Error: TimeoutError - Sever is not responding')
+                raise Exception('TimeoutError - Sever is not responding')
 
             except Exception as error_msg:
-                print('original res: {}'.format(message))
+                # print('original res: {}'.format(message))
                 error_message = error_handler(error_msg)
 
                 await connection.send(json.dumps(error_message))
