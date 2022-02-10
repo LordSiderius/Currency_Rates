@@ -8,8 +8,8 @@ from message_handler import message_handler, error_handler
 async def heartbeat(rates_mem):
 
     print('starting connection...')
-    url = 'ws://localhost:8765' # DEBUG
-    # url = "wss://currency-assignment.ematiq.com"
+    # url = 'ws://localhost:8765' # DEBUG
+    url = "wss://currency-assignment.ematiq.com"
 
 
     async with ws.connect(url) as connection:
