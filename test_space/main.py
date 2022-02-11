@@ -16,13 +16,13 @@ async def heartbeat(rates_mem):
         while True:
             print('-----------------------------------------------------------------------------------------')
             data = json.dumps({'type': 'heartbeat'})
-            await asyncio.wait_for(connection.send(data), timeout=0.2)
-            print("out message: {}".format(data))
 
             try:
-                message = await asyncio.wait_for(connection.recv(), timeout=2)
-                message = json.loads(message)
-                print('in message : {}'.format(message))
+                out_message, in_message = await asyncio.wait_for(asyncio.gather(connection.send(data), connection.recv(),
+                                                                                return_exceptions=False), timeout=2)
+                message = json.loads(in_message)
+                print("out message: {}".format(data))
+                print('in message : {}'.format(in_message))
 
                 # DEBUG recording
                 # if message['type'] == "message":

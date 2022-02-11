@@ -1,13 +1,15 @@
 ivalid url of server
 ivalid url of currency rate server
-invalid messages
+invalid messages:
 	- invalid date
 	- invalid currency
 	- invalid keys
 	- ivalid values
 	- missing stake
+	- future date
+	- invalid date
+	- negative stake
 	
 timeout
 
-known issues:
-short date will return todays date
+

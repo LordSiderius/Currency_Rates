@@ -7,6 +7,8 @@ import json
 import random
 from currency_rate_memory import RateMemory
 import time
+from datetime import datetime
+import logging
 
 def message_handler(message, rates_mem):
     """
@@ -15,24 +17,29 @@ def message_handler(message, rates_mem):
     Otherwise exception will be risen.
     """
 
-    #check message structure
+
 
     if message['type'] == 'message':
 
-
+        # check message structure
         keys = ['type', 'id', 'payload']
         payload_keys = ['marketId', 'selectionId', 'odds', 'stake', 'currency', 'date']
 
         if not(set(message.keys()).issubset(keys)):
-            print('error 1')
-            raise Exception('Message structure is not correct. One or more keys are missing')
+            error_msg = 'Message structure is not correct. One or more keys are missing'
+            # print(error_msg)
+            raise Exception(error_msg)
 
         elif not(set(payload_keys).issubset(message['payload'])):
-            print('error 1')
-            raise Exception('Message[\'payload\'] structure is not correct. One or more keys are missing')   #
+            error_msg = 'Message[\'payload\'] structure is not correct. One or more keys are missing'
+            # logging.error(error_msg)
+            raise Exception(error_msg)   #
 
 
         try:
+            # check date format
+            datetime.strptime(message['payload']['date'][:10], '%Y-%m-%d')
+
             rate = rates_mem.get_rates(message['payload']['date'][:10], message['payload']['currency'])
             out_message = copy.copy(message)
             out_message['payload']['stake'] = round(float(out_message['payload']['stake']) / rate, 5)
@@ -41,13 +48,19 @@ def message_handler(message, rates_mem):
 
         except Exception as error:
             out_message = None
-            # error_handler(e)
-            print('error5: ')
+
+            # logging.error(error)
             raise Exception(error)
             # print('Currency rate wasn\'t transferred. Error : %s' % e)
 
-    else:
+    elif message['type'] == 'heartbeat':
+
         out_message = None
+
+    else:
+
+        raise Exception('Message doesn\'t contain key-value pair \"type\": \"message\"')
+
 
 
     return out_message
@@ -92,6 +105,7 @@ if __name__ == '__main__':
                 out_message = message_handler(message, rates_mem)
 
             except Exception as error:
+                logging.error(error)
 
                 out_message = error_handler(error)
 

@@ -3,6 +3,7 @@
 import requests
 from datetime import datetime, timedelta
 import time
+import logging
 
 
 class RateMemory(object):
@@ -26,9 +27,9 @@ class RateMemory(object):
                 response = requests.get(url, timeout=1)
                 data = response.json()
                 if data['success'] is False:
-                    # print('Receiving rates for ' + date + ' from server ' + url + ' wasn\'t successful')
-                    print('error 8')
-                    raise Exception('Receiving rates for ' + date + ' from server ' + url + ' wasn\'t successful')
+                    error_msg = 'Receiving rates for ' + date + ' from server ' + url + ' wasn\'t successful'
+                    # logging.error(error_msg)
+                    raise Exception(error_msg)
 
                 else:
                     create_date = datetime.now()
@@ -36,7 +37,7 @@ class RateMemory(object):
                     print(date + ' was added to currency rates memory')
 
             except Exception as error:
-                print('error 7')
+                # logging.error(error)
                 raise Exception(error)
 
 
@@ -55,7 +56,7 @@ class RateMemory(object):
             try:
                 self.download_rates_by_date(date)
             except Exception as error:
-                print('error 6')
+                # logging.error(error)
                 raise Exception(error)
                 # print('Current rates cannot be downloaded. Error text: %s' % e)
 
@@ -64,8 +65,9 @@ class RateMemory(object):
             rates = self.rates[date][1][currency]
 
         except Exception as error:
-            print('error 4:')
-            raise Exception('Given currency %s is not in the currency rates list' % str(error))
+            error_msg = 'Given currency %s is not in the currency rates list' % str(error)
+            # logging.error(error_msg)
+            raise Exception(error_msg)
 
         return rates
 
