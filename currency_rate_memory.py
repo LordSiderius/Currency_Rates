@@ -16,6 +16,9 @@ class RateMemory(object):
         """
         Function download_rates_by_date(date) will check whether the currency rates belonging to given date are already
         in the memory. If not, given day records are added to memory.
+
+        :return:
+            None
         """
 
         if not(date in list(self.rates.keys())):
@@ -26,8 +29,8 @@ class RateMemory(object):
                 response = requests.get(url, timeout=1)
                 data = response.json()
                 if data['success'] is False:
-                    print('Receiving rates for ' + date + ' from server ' + url + ' wasn\'t successful')
-                    raise Exception('Receiving rates for ' + date + ' from server ' + url + ' wasn\'t successful')
+                    error_msg = 'Receiving rates for ' + date + ' from server ' + url + ' wasn\'t successful'
+                    raise Exception(error_msg)
 
                 else:
                     create_date = datetime.now()
@@ -35,32 +38,37 @@ class RateMemory(object):
                     print(date + ' was added to currency rates memory')
 
             except Exception as error:
+                # logging.error(error)
                 raise Exception(error)
-                # print('Error10: %s' % error)
 
         else:
 
             print(date + ' is already in memory')
 
-
-
     def get_rates(self, date, currency):
         """
-               Function get_rates(date, currency) will return currency <> EUR rate to given date and currency.
-               If given date is not it the memory, than it is automatically downloaded from https://exchangerate.host/.
-               """
+        Function get_rates(date, currency) will return currency <> EUR rate to given date and currency.
+        If given date is not it the memory, than it is automatically downloaded from https://api.exchangerate.host/.
+
+        :return:
+            float:
+            Currency conversion rates currency -> EUR for given date
+        """
         if not(date in list(self.rates.keys())):
             try:
                 self.download_rates_by_date(date)
-            except Exception as e:
-                raise Exception(e)
+            except Exception as error:
+                # logging.error(error)
+                raise Exception(error)
                 # print('Current rates cannot be downloaded. Error text: %s' % e)
 
         try:
+
             rates = self.rates[date][1][currency]
-        except Exception as e:
-            # print('Error: Given date %s is not in the memory.' % e)
-            raise Exception('Given currency %s is not in the currency rates list' % e)
+
+        except Exception as error:
+            error_msg = 'Given currency %s is not in the currency rates list' % str(error)
+            raise Exception(error_msg)
 
         return rates
 
@@ -68,6 +76,9 @@ class RateMemory(object):
         """
         Function clean_mem() clears the records older than x hours from the memory.
         x is set by parameter self.records_lifespan.
+
+        :return:
+            None
         """
 
         list_of_dates = list(self.rates.keys())
@@ -82,20 +93,19 @@ class RateMemory(object):
 
 
 if __name__ == '__main__':
-    #debug session
+
+    # debug session
     cur_rates = RateMemory()
-    #cur_rates.records_lifespan = 1/3600
+    # cur_rates.records_lifespan = 1/3600
     # cur_rates.download_rates_by_date('2020-04-04')
     time.sleep(2)
     # cur_rates.download_rates_by_date('2019-04-04')
     cur_rates.clean_mem()
     # cur_rates.download_rates_by_date('2020-04-04')
     time.sleep(0.5)
-    cur_rates.download_rates_by_date('1885-04-04')
+    print(cur_rates.download_rates_by_date('1885-04-04'))
     cur_rates.clean_mem()
     time.sleep(0.7)
     cur_rates.clean_mem()
 
     print(cur_rates.get_rates('2022-01-13', 'UAH'))
-
-

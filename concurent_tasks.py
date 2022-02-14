@@ -59,11 +59,18 @@ async def listen(websocket, cur_rates):
 
     print('Receiving from server started...')
 
+
     last_time = datetime.now()
+
+    # stores time, when communication begun
+    last_time = datetime.now()
+
+
     while True:
 
         try:
             loop = asyncio.get_running_loop()
+
             message = json.loads(await websocket.recv())
 
 
@@ -100,6 +107,44 @@ def run():
     cur_rates = RateMemory()
 
     try:
+=======
+            # call function to clean memory
+            await loop.run_in_executor(None, cur_rates.clean_mem())
+
+            # receives message from server
+            message = json.loads(await websocket.recv())
+
+            if message['type'] == 'heartbeat':
+                last_time = datetime.now()
+
+            if datetime.now() > (last_time + timedelta(seconds=2.0)):
+                asyncio.Task.cancel()
+                raise Exception('TimeoutError')
+
+            # processing of input message into output message
+            back_message = await loop.run_in_executor(None, message_handler, message, cur_rates)
+            #
+            # print('==============================================')
+            # print(f"server message: {message}")
+            # print('----------------------------------------------')
+            # print(f"my response: {back_message}")
+
+            # sending back message if there is a one
+            if back_message is not None:
+                await loop.create_task(websocket.send(json.dumps(back_message)))
+
+        except Exception as error:
+            raise Exception(error)
+
+
+def run():
+
+    # initialization of currency rates memory
+    cur_rates = RateMemory()
+
+    try:
+        # runs the application
+>>>>>>> product
         asyncio.run(create_connection(cur_rates))
 
     except Exception as error:
@@ -110,7 +155,11 @@ def run():
 
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     cur_rates = RateMemory()
+=======
+    # simple run :)
+>>>>>>> product
     run()
 
 
