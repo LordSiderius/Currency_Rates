@@ -20,13 +20,10 @@ def server():
     call(["e:/Python_project/Currency_rates/venv/Scripts/python.exe", "test_space/server.py"])
 
 
-async def handler():
+async def handler(url):
 
     # initialization of currency rates memory
     cur_rates = RateMemory()
-
-    # url = 'ws://localhost:8765'
-    url = 'wss://currency-assignment.ematiq.com'
 
     websocket = await ws.connect(url)
     print('Connected to ' + url)
@@ -39,8 +36,8 @@ async def handler():
 
     # task don't return anything, so only exception can break the loop
     for task in finished:
-        print(task.exception())
-        # raise Exception(task.exception())
+        logging.warning(task.exception())
+        raise Exception(task.exception())
 
     # close task, which are not finished
     for task in pending:
@@ -52,60 +49,63 @@ async def producer_handler(websocket):
     print('Sending heartbeats started...')
 
     while True:
+        try:
+            message = json.dumps({'type': 'heartbeat'})
+            await asyncio.wait_for(websocket.send(message), timeout=2)
+            print('==============================================')
+            print('heartbeat send')
 
-        message = json.dumps({'type': 'heartbeat'})
-        await websocket.send(message)
-        print('==============================================')
-        print('heartbeat send')
+            await asyncio.sleep(1)
+        except Exception as error:
+            raise Exception(error)
 
-        await asyncio.sleep(1)
-
-# async def miniservice(websocket):
-#
-#     result = []
-#     while True:
-#         message = await websocket.recv()
-#         # print(message)
-#
-#         if not(message is None):
-#             result.append(message)
-#
-#         if message is None:
-#             return result
 
 async def consumer_handler(websocket, cur_rates):
-
+    # cur_rates.records_lifespan = 1/120 # DEBUG
     print('Receiving from server started...')
 
     # stores time, when communication begun
-    # last_time = datetime.now()
-
-    async for message in websocket:
+    last_time = datetime.now()
+    while True:
+        # try to clean memory
+        cur_rates.clean_mem()
         try:
-            response = message_handler(message, cur_rates)
-            if response is not None:
-                print(f"Response: {response}")
-                await websocket.send(response)
+            # print((last_time + timedelta(seconds=2)) - datetime.now() )
+            if datetime.now() > (last_time + timedelta(seconds=2)):
+                logging.error('timeout')
+                raise Exception('2 sec limit exceeded')
 
-        except Exception as error_msg:
+            res = await asyncio.wait_for(websocket.recv(), timeout=2)
+            print(f"message: {res}")
+            answer = message_handler(res, cur_rates)
+            print(f"answer: {answer}")
 
-            logging.error(error_msg)
-            break
+            if answer == 'heartbeat':
+                logging.warning('heartbeat')
+                last_time = datetime.now()
+            else:
+                await asyncio.wait_for(websocket.send(answer), timeout=2)
 
-def run():
+        except asyncio.TimeoutError:
+            logging.warning(asyncio.TimeoutError)
+            raise Exception(asyncio.TimeoutError)
+
+        except Exception as e:
+            logging.warning(e)
+            raise Exception(e)
 
 
+def run(url):
 
     try:
     # runs the application
-        asyncio.run(handler())
+        asyncio.run(handler(url))
 
     except Exception as error:
-    #
         logging.error(error)
         print('Restarting application!')
         time.sleep(2)
-        run()
+        run(url)
 
 
 if __name__ == '__main__':
@@ -116,8 +116,9 @@ if __name__ == '__main__':
         processThread = threading.Thread(target=server)
         processThread.start()
         url = 'ws://localhost:8765'
-        run()
+        run(url)
 
     # simple run :)
     else:
-        run()
+        url = 'wss://currency-assignment.ematiq.com'
+        run(url)

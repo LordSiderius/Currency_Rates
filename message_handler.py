@@ -27,11 +27,12 @@ def message_handler(message, rates_mem):
         message_type = message['type']
 
     except Exception as error_msg:
-        raise Exception(error_msg)
+        return error_handler(error_msg)
+        # raise Exception(error_msg)
 
     if message_type == 'heartbeat':
         #update tiemr
-        return None
+        return 'heartbeat'
 
 
     # checks
@@ -41,14 +42,16 @@ def message_handler(message, rates_mem):
         keys = ['type', 'id', 'payload']
         if not (set(message.keys()).issubset(keys)):
             error_msg = 'Message structure is not correct. One or more keys are missing'
-            raise Exception(error_msg)
+            return error_handler(error_msg)
+            # raise Exception(error_msg)
 
 
         # check message['payload'] structure
         payload_keys = ['marketId', 'selectionId', 'odds', 'stake', 'currency', 'date']
         if not(set(payload_keys).issubset(message['payload'])):
             error_msg = 'Message[\'payload\'] structure is not correct. One or more keys are missing'
-            raise Exception(error_msg)
+            return error_handler(error_msg)
+
 
         try:
             # check date format
@@ -62,19 +65,17 @@ def message_handler(message, rates_mem):
             out_message['payload']['stake'] = round(float(out_message['payload']['stake']) / rate, 5)
             out_message['payload']['currency'] = "EUR"
 
-        except Exception as error:
-            raise Exception(error)
+            return json.dumps(out_message)
+
+        except Exception as error_msg:
+            return error_handler(error_msg)
+
 
     # if heartbeat is returned from server Nothing will happened
-    elif message['type'] == 'heartbeat':
-
-        out_message = None
 
     else:
-
-        raise Exception("Message doesn't contain key-value pair 'type': 'message'")
-
-    return json.dumps(out_message)
+        error_msg = "Message doesn't contain valid key-value pair 'type': 'message' or 'heartbeat'"
+        return error_handler(error_msg)
 
 
 def error_handler(error_string):
@@ -96,7 +97,7 @@ def error_handler(error_string):
         "message": "Unable to convert stake. Error: %s" % error_string
     }
 
-    return out_error
+    return json.dumps(out_error)
 
 
 if __name__ == '__main__':
