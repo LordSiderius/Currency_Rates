@@ -30,14 +30,14 @@ async def echo(websocket):
                     message = json.dumps(message)
 
                     # with probability of 30% will send message, otherwise it will return heartbeat
-                    if random.random() > 0.7:
+                    if random.random() > 0.3:
                         message = text[random.randint(0, size - 1)]
 
 
                     # simulation of server timeout, it can take server 3 secs to answer, which is greater
                     # than 2 secs timeout of client
-                    delay = random.random() * 3.0
-                    # print('delay: ' + str(delay))
+                    delay = random.random() * 5.0
+                    print('delay: ' + str(delay))
                     await asyncio.sleep(delay)
 
                     # send message
