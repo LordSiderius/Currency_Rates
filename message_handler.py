@@ -22,21 +22,38 @@ def message_handler(message, rates_mem):
         Otherwise returns None
     """
 
-    # check message structure
-    keys = ['type', 'id', 'payload']
-    if not (set(message.keys()).issubset(keys)):
-        error_msg = 'Message structure is not correct. One or more keys are missing'
-        raise Exception(error_msg)
+    # checks whether the message can be loaded as json and contains key 'type'
+    try:
+        message = json.loads(message)
+        message_type = message['type']
 
-    # checks
-    if message['type'] == 'message':
+    except Exception as error_msg:
+        return error_handler(error_msg)
 
-        # check message['payload'] structure
+
+    # if heartbeat is returned from server heartbeat is returned to consumer_handler() function
+    if message_type == 'heartbeat':
+
+        return 'heartbeat'
+
+
+    # createsd answer for message of 'type' == 'message'
+    elif message_type == 'message':
+
+        # checks message structure
+        keys = ['type', 'id', 'payload']
+        if not (set(message.keys()).issubset(keys)):
+            error_msg = 'Message structure is not correct. One or more keys are missing'
+            return error_handler(error_msg)
+            # raise Exception(error_msg)
+
+        # checks message['payload'] structure
         payload_keys = ['marketId', 'selectionId', 'odds', 'stake', 'currency', 'date']
         if not(set(payload_keys).issubset(message['payload'])):
             error_msg = 'Message[\'payload\'] structure is not correct. One or more keys are missing'
-            raise Exception(error_msg)
+            return error_handler(error_msg)
 
+        # checks if answer message can be created and other stuff
         try:
             # check date format
             datetime.strptime(message['payload']['date'][:10], '%Y-%m-%d')
@@ -49,19 +66,14 @@ def message_handler(message, rates_mem):
             out_message['payload']['stake'] = round(float(out_message['payload']['stake']) / rate, 5)
             out_message['payload']['currency'] = "EUR"
 
-        except Exception as error:
-            raise Exception(error)
+            return json.dumps(out_message)
 
-    # if heartbeat is returned from server Nothing will happened
-    elif message['type'] == 'heartbeat':
-
-        out_message = None
+        except Exception as error_msg:
+            return error_handler(error_msg)
 
     else:
-
-        raise Exception("Message doesn't contain key-value pair 'type': 'message'")
-
-    return out_message
+        error_msg = "Message doesn't contain valid key-value pair 'type': 'message' or 'heartbeat'"
+        return error_handler(error_msg)
 
 
 def error_handler(error_string):
@@ -83,7 +95,7 @@ def error_handler(error_string):
         "message": "Unable to convert stake. Error: %s" % error_string
     }
 
-    return out_error
+    return json.dumps(out_error)
 
 
 if __name__ == '__main__':
