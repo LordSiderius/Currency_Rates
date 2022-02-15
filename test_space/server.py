@@ -16,27 +16,28 @@ async def echo(websocket):
             # print(message)
             # print('============================================================')
 
-            for i in range(random.randint(0, 2)):
-                path = 'test_space/test_messages/mixed_messages.txt'
-                with open(path, 'r') as file:
-                    text = file.readlines()
-                    size = len(text)
-                    message = text[random.randint(0, size - 1)]
-                    await websocket.send(message)
+            g = json.loads(message)
 
-            message = json.loads(message)
+            if g['type'] == 'heartbeat':
 
-
-            if message['type'] == 'heartbeat':
+                for i in range(random.randint(0, 2)):
+                    path = 'test_space/test_messages/mixed_messages.txt'
+                    # path = 'test_space/test_messages/valid_messages.txt'
+                    with open(path, 'r') as file:
+                        text = file.readlines()
+                        size = len(text)
+                        message = text[random.randint(0, size - 1)]
+                        await websocket.send(message)
             #
             #     message = json.dumps(message)
             #     # simulation of server timeout, it can take server 3 secs to answer, which is greater
             #     # than 2 secs timeout of client
-                delay = random.random() * 3.0
+            #     delay = random.random() * 3.0
+                delay = 1.0
             #     # print('delay: ' + str(delay))
                 await asyncio.sleep(delay)
             #     # send message
-                await websocket.send(json.dumps(message))
+                await websocket.send(json.dumps(g))
 
     except Exception as e:
         print('============================================================')

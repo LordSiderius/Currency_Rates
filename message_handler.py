@@ -22,37 +22,38 @@ def message_handler(message, rates_mem):
         Otherwise returns None
     """
 
+    # checks whether the message can be loaded as json and contains key 'type'
     try:
         message = json.loads(message)
         message_type = message['type']
 
     except Exception as error_msg:
         return error_handler(error_msg)
-        # raise Exception(error_msg)
 
+
+    # if heartbeat is returned from server heartbeat is returned to consumer_handler() function
     if message_type == 'heartbeat':
-        #update tiemr
+
         return 'heartbeat'
 
 
-    # checks
+    # createsd answer for message of 'type' == 'message'
     elif message_type == 'message':
 
-        # check message structure
+        # checks message structure
         keys = ['type', 'id', 'payload']
         if not (set(message.keys()).issubset(keys)):
             error_msg = 'Message structure is not correct. One or more keys are missing'
             return error_handler(error_msg)
             # raise Exception(error_msg)
 
-
-        # check message['payload'] structure
+        # checks message['payload'] structure
         payload_keys = ['marketId', 'selectionId', 'odds', 'stake', 'currency', 'date']
         if not(set(payload_keys).issubset(message['payload'])):
             error_msg = 'Message[\'payload\'] structure is not correct. One or more keys are missing'
             return error_handler(error_msg)
 
-
+        # checks if answer message can be created and other stuff
         try:
             # check date format
             datetime.strptime(message['payload']['date'][:10], '%Y-%m-%d')
@@ -69,9 +70,6 @@ def message_handler(message, rates_mem):
 
         except Exception as error_msg:
             return error_handler(error_msg)
-
-
-    # if heartbeat is returned from server Nothing will happened
 
     else:
         error_msg = "Message doesn't contain valid key-value pair 'type': 'message' or 'heartbeat'"
