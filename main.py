@@ -61,8 +61,8 @@ async def producer_handler(websocket):
             message = json.dumps({'type': 'heartbeat'})
             # timeout of two second in case of connection error
             await asyncio.wait_for(websocket.send(message), timeout=2)
-            print('==============================================')
-            print('heartbeat send')
+            # print('==============================================')
+            # print('heartbeat send') # heartbeat for DEBUG
 
             await asyncio.sleep(1)
 
@@ -92,19 +92,16 @@ async def consumer_handler(websocket, cur_rates):
 
             # listening to server
             res = await asyncio.wait_for(websocket.recv(), timeout=2)
-            print(f"message: {res}")
+            # print(f"message: {res}") # message for DEBUG
 
             # handler which is bulding a message with converted currency or an error message
             answer = message_handler(res, cur_rates)
-            print(f"answer: {answer}")
+            # print(f"answer: {answer}")# answer for DEBUG
 
             # stores last time, when heartbeat was received from server
             if answer == 'heartbeat':
                 last_time = datetime.now()
             else:
-                # send the answer to server
-                with open('valid_messages.txt', 'a') as file:
-                    file.write(res + '\n')
                 await asyncio.wait_for(websocket.send(answer), timeout=2)
 
         # catches timeout

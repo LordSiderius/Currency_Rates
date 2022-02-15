@@ -15,7 +15,7 @@ async def echo(websocket):
             # print('Message received by server:')
             # print(message)
             # print('============================================================')
-
+            print(f"in message{message}")
             g = json.loads(message)
 
             if g['type'] == 'heartbeat':
@@ -27,6 +27,7 @@ async def echo(websocket):
                         text = file.readlines()
                         size = len(text)
                         message = text[random.randint(0, size - 1)]
+                        print(f"out message{message}")
                         await websocket.send(message)
             #
             #     message = json.dumps(message)
